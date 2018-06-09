@@ -11,6 +11,7 @@
 #include <unistd.h>	// for sleep()
 
 #include "fileutils.h"
+#include "seg14display.h"
 #include "sorter.h"
 
 #include "pot.h"
@@ -73,10 +74,13 @@ int getVoltage0Reading()
 //
 
 #define POLL_INTERVAL_SEC 1
+#define DISPLAY_MAX_NUM 99
 
 #define NUM_CONTROL_POINTS 10
-static int pwl_a2dReadings[NUM_CONTROL_POINTS] = { 0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4100 };
-static int pwl_arraySize[NUM_CONTROL_POINTS] =   { 1,  20,   60,  120,  250,  300,  500,  800, 1200, 2100 };
+static const int pwl_a2dReadings[NUM_CONTROL_POINTS] = { 0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4100 };
+static const int pwl_arraySize[NUM_CONTROL_POINTS] =   { 1,  20,   60,  120,  250,  300,  500,  800, 1200, 2100 };
+
+static long long lastNumArrays = 0;
 
 static int potToArraySizePWL(int voltage)
 {
@@ -104,6 +108,25 @@ static int potToArraySizePWL(int voltage)
 	return 0;
 }
 
+// Updates the 14 segment display with last 2 digits of the number
+static void updateDisplay(long long num)
+{
+	if (num > DISPLAY_MAX_NUM) {
+		num = DISPLAY_MAX_NUM;
+	}
+
+	// Get last two digits
+	int onesDigit = num % 10;
+	int tensDigit = (num % 100) / 10;
+
+	// This converts int to char... taken from stackoverflow
+	char onesChar = onesDigit + '0';
+	char tensChar = tensDigit + '0';
+
+	Seg14_setDisplay(SEG14_DIGIT_0, tensChar);
+	Seg14_setDisplay(SEG14_DIGIT_1, onesChar);
+}
+
 static void* readPotThread()
 {
 	while (isEnabled) {
@@ -111,8 +134,16 @@ static void* readPotThread()
 		int arraySize = potToArraySizePWL(voltage);
 		Sorter_setArraySize(arraySize);
 
+		// Calculate number of arrays sorted in the last second
+		long long currentNumArrays = Sorter_getNumberArraysSorted();
+		long long numArraysDiff = currentNumArrays - lastNumArrays;
+		lastNumArrays = currentNumArrays;
+
+		// Update display with number sorted
+		updateDisplay(numArraysDiff);
+
 		// Output array size value
-		printf("Array size: [%d]\n", arraySize);
+		printf("Array size: [%d] \tArrays sorted [%llu]\n", arraySize, numArraysDiff);
 
 		sleep(POLL_INTERVAL_SEC);
 	}

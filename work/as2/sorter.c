@@ -54,9 +54,9 @@ void Sorter_stopSorting()
 void Sorter_setArraySize(int newSize)
 {
 	if (arraySize != newSize) {
-		pthread_mutex_lock(&arrayMutex);
+		pthread_mutex_lock(&arraySizeMutex);
 		arraySize = newSize;
-		pthread_mutex_unlock(&arrayMutex);
+		pthread_mutex_unlock(&arraySizeMutex);
 	}
 }
 

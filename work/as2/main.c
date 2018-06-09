@@ -18,8 +18,8 @@ static void initializeModules()
 {
 	srand(time(NULL));
 
-	//Pot_initialize();
-	//Seg14_initialize();
+	Pot_initialize();
+	Seg14_initialize();
 	Sorter_startSorting();
 	Listener_initialize();
 }
@@ -28,8 +28,8 @@ static void shutdownModules()
 {
 	Listener_shutdown();
 	Sorter_stopSorting();
-	//Seg14_shutdown();
-	//Pot_shutdown();
+	Seg14_shutdown();
+	Pot_shutdown();
 }
 
 int main()
