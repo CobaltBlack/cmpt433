@@ -7,7 +7,6 @@
 #include "joystick.h"
 #include "led.h"
 
-static const int NUM_GAMES = 8;
 static const int INCORRECT_LED_FLASH_NUM = 5;
 static const long LED_FLASH_DURATION_NS = 100000000;
 
@@ -34,14 +33,15 @@ int main()
 	printf("Press the Zen cape's Joystick in the direction of the LED.\n");
  	printf("  UP for LED 0 (top)\n");
  	printf("  DOWN for LED 3 (bottom)\n");
- 	printf("  LEFT/RIGHT for exit app. test test\n");
+ 	printf("  LEFT/RIGHT for exit app.\n");
 
  	// Initialize score
  	int currentScore = 0;
+ 	int numGamesPlayed = 0;
 
 	// Main loop
- 	for (int currentGameNum = 0; currentGameNum < NUM_GAMES; currentGameNum++) {
-		printf("Press joystick; current score (%d / %d)\n", currentScore, NUM_GAMES);
+ 	while (true) {
+		printf("Press joystick; current score (%d / %d)\n", currentScore, numGamesPlayed);
 
 		// Randomly choose up or down
 		bool bAnswerIsUp = (rand() % 2) == 0;
@@ -54,7 +54,7 @@ int main()
 		}
 
 		// Wait for joystick input (ignore JOYSTICK_PUSH)
-		int joystickInput = JOYSTICK_NOOPT;
+		JoystickDirection joystickInput = JOYSTICK_NOOPT;
 		while (joystickInput == JOYSTICK_NOOPT || joystickInput == JOYSTICK_PUSH) {
 			joystickInput = Joystick_getInput();
 		}
@@ -88,6 +88,8 @@ int main()
 			}
 		}
 
+		numGamesPlayed++;
+
 		Led_setAll(false);
 
 		// Wait for joystick no-opt
@@ -96,7 +98,7 @@ int main()
 		}
  	}
 
- 	printf("Your final score was (%d / %d)\n", currentScore, NUM_GAMES);
+ 	printf("Your final score was (%d / %d)\n", currentScore, numGamesPlayed);
  	printf("Thank you for playing!\n");
 
  	shutdownModules();

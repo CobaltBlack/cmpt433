@@ -4,6 +4,8 @@
 
 int readFromFile(const char* filename, char* outBuff)
 {
+	outBuff[0] = '\0';
+
 	FILE* pFile = fopen(filename, "r");
 	if (!pFile) {
 		printf("ERROR: Unable to open file [%s] for read\n", filename);

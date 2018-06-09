@@ -8,8 +8,8 @@
 #define BBG_LED2 2
 #define BBG_LED3 3
 
-#define LED_OFF 0
-#define LED_ON 1
+#define LED_OFF false
+#define LED_ON true
 
 void Led_init();
 void Led_shutdown();
