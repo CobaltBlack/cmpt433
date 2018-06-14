@@ -3,6 +3,8 @@
  *
  *  Created on: May 30, 2018
  *      Author: eric
+ *
+ * Controls the 14-segment display on the zen cape.
  */
 
 #include <stdbool.h>

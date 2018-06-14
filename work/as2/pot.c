@@ -111,13 +111,14 @@ static int potToArraySizePWL(int voltage)
 // Updates the 14 segment display with last 2 digits of the number
 static void updateDisplay(long long num)
 {
-	if (num > DISPLAY_MAX_NUM) {
-		num = DISPLAY_MAX_NUM;
+	int displayNum = (int) num;
+	if (displayNum > DISPLAY_MAX_NUM) {
+		displayNum = DISPLAY_MAX_NUM;
 	}
 
 	// Get last two digits
-	int onesDigit = num % 10;
-	int tensDigit = (num % 100) / 10;
+	int onesDigit = displayNum % 10;
+	int tensDigit = (displayNum % 100) / 10;
 
 	// This converts int to char... taken from stackoverflow
 	char onesChar = onesDigit + '0';
@@ -129,6 +130,8 @@ static void updateDisplay(long long num)
 
 static void* readPotThread()
 {
+	lastNumArrays = 0;
+
 	while (isEnabled) {
 		int voltage = getVoltage0Reading();
 		int arraySize = potToArraySizePWL(voltage);

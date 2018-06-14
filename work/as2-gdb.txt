@@ -1,0 +1,67 @@
+eric@eric-VirtualBox:~/cmpt433/public/myApps$ gdb-multiarch -q noworky
+Reading symbols from noworky...done.
+(gdb) target remote 192.168.7.2:2001
+Remote debugging using 192.168.7.2:2001
+Reading /lib/ld-linux-armhf.so.3 from remote target...
+warning: File transfers from remote targets can be slow. Use "set sysroot" to access files locally instead.
+Reading /lib/ld-linux-armhf.so.3 from remote target...
+Reading symbols from target:/lib/ld-linux-armhf.so.3...Reading /lib/ld-2.19.so from remote target...
+Reading /lib/.debug/ld-2.19.so from remote target...
+(no debugging symbols found)...done.
+0xb6fd7b40 in ?? () from target:/lib/ld-linux-armhf.so.3
+(gdb) list
+37	{
+38		unsigned int i;
+39	    for (i=0; i < size; i++) {
+40			printf("%3d: %05.1f --> %05.1f\n", i, source[i], target[i]);
+41		}
+42	}
+43	
+44	/*
+45	 * Create two arrays; populate them; swap them; display them.
+46	 */
+(gdb) continue
+Continuing.
+Reading /lib/arm-linux-gnueabihf/libpthread.so.0 from remote target...
+Reading /lib/arm-linux-gnueabihf/libc.so.6 from remote target...
+Reading /lib/arm-linux-gnueabihf/libpthread-2.19.so from remote target...
+Reading /lib/arm-linux-gnueabihf/.debug/libpthread-2.19.so from remote target...
+Reading /lib/arm-linux-gnueabihf/libc-2.19.so from remote target...
+Reading /lib/arm-linux-gnueabihf/.debug/libc-2.19.so from remote target...
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0001053e in swapContent (d1=0x20ff8, d2=0x21050) at noworky.c:19
+19		*d1 = tmp;
+(gdb) bt
+#0  0x0001053e in swapContent (d1=0x20ff8, d2=0x21050) at noworky.c:19
+#1  0x00010574 in tradeArrays (array1=0x22008, array2=0x22060, size=10)
+    at noworky.c:29
+#2  0x0001067c in main () at noworky.c:72
+(gdb) info local
+tmp = 30
+(gdb) up
+#1  0x00010574 in tradeArrays (array1=0x22008, array2=0x22060, size=10)
+    at noworky.c:29
+29			swapContent(array1+i, array2+i);
+(gdb) info local
+i = 4294966782
+(gdb) list
+24	 */
+25	void tradeArrays(double *array1, double *array2, int size)
+26	{
+27		unsigned int i;
+28		for (i = size-1; i >= 0; i--) {
+29			swapContent(array1+i, array2+i);
+30		}
+31	}
+32	
+33	/*
+(gdb) up
+#2  0x0001067c in main () at noworky.c:72
+72		tradeArrays(source, target, NUM_ELEMENTS);
+(gdb) info local
+i = 10
+source = 0x22008
+target = 0x22060
+(gdb) 
+

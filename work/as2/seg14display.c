@@ -24,7 +24,7 @@ static bool isEnabled = false;
 
 #define I2C_DEVICE_ADDRESS 0x20
 
-// TODO: Map digits to segment bitcodes
+// Display register locations
 #define REG_DIRA 0x00
 #define REG_DIRB 0x01
 #define REG_OUTA 0x14
@@ -37,8 +37,17 @@ static unsigned char leftRegB = 0x00;
 static unsigned char rightRegA = 0x00;
 static unsigned char rightRegB = 0x00;
 
+
+//
+// Prototypes
+//
+
 static void setPinProperty(const char* pinNum, const char* property, const char* value);
 static void* runDisplayThread();
+
+//
+// Public functions
+//
 
 void Seg14_initialize()
 {
@@ -146,6 +155,12 @@ void Seg14_setEnabled(int digitId, bool isEnabled)
 		setPinProperty(RIGHT_PIN, "value", isEnabled ? "1" : "0");
 	}
 }
+
+
+
+//
+// Private functions
+//
 
 #define DISPLAY_DURATION_NS 5000000
 

@@ -84,7 +84,11 @@ int* Sorter_getArrayData(int *length)
 
 int Sorter_getArrayElement(int index)
 {
-	return currentArray[index];
+	pthread_mutex_lock(&arrayMutex);
+	int element = currentArray[index];
+	pthread_mutex_unlock(&arrayMutex);
+
+	return element;
 }
 
 // Get the number of arrays which have finished being sorted.
@@ -99,16 +103,12 @@ long long Sorter_getNumberArraysSorted()
 
 static void randomizeArray(int* intArray, int len)
 {
-	pthread_mutex_lock(&arrayMutex);
-
 	for (int i = 0; i < len; i++) {
 		int randomIndex = rand() % len;
 		int temp = intArray[i];
 		intArray[i] = intArray[randomIndex];
 		intArray[randomIndex] = temp;
 	}
-
-	pthread_mutex_unlock(&arrayMutex);
 }
 
 static void bubbleSort(int* intArray, int len)
@@ -137,19 +137,23 @@ static void* sortArrays()
 
 		// malloc and initialize array with random permutation
 		pthread_mutex_lock(&arrayMutex);
+
 		currentArray = malloc(currentArraySize * sizeof(*currentArray));
 		for (int i = 0; i < currentArraySize; i++) {
 			currentArray[i] = i + 1;
 		}
-		pthread_mutex_unlock(&arrayMutex);
 
 		randomizeArray(currentArray, currentArraySize);
+
+		pthread_mutex_unlock(&arrayMutex);
 
 		// Bubble sort array?!?!
 		bubbleSort(currentArray, currentArraySize);
 
 		// free array memory
+		pthread_mutex_lock(&arrayMutex);
 		free(currentArray);
+		pthread_mutex_unlock(&arrayMutex);
 
 		numArraysSorted++;
 	}

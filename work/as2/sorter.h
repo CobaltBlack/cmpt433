@@ -22,6 +22,7 @@ int Sorter_getArrayLength(void);
 // The calling code must call free() on the returned pointer.
 int* Sorter_getArrayData(int *length);
 
+// Get value at index
 int Sorter_getArrayElement(int index);
 
 // Get the number of arrays which have finished being sorted.

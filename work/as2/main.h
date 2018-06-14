@@ -3,6 +3,8 @@
  *
  *  Created on: Jun 2, 2018
  *      Author: eric
+ *
+ * Interface to the main thread
  */
 
 #ifndef MAIN_H_

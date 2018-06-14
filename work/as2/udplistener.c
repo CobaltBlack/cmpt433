@@ -27,11 +27,11 @@
 
 static const char* helpText =
 	"Accepted command examples:\n"
-	"count -- display number arrays sorted.\n"
+	"count      -- display number arrays sorted.\n"
 	"get length -- display length of array currently being sorted.\n"
-	"get array -- display the full array being sorted.\n"
-	"get 10 -- display the tenth element of array currently being sorted.\n"
-	"stop -- cause the server program to end.\n";
+	"get array  -- display the full array being sorted.\n"
+	"get 10     -- display the tenth element of array currently being sorted.\n"
+	"stop       -- cause the server program to end.\n";
 
 static pthread_t pListenerThread;
 static bool isEnabled = false;
@@ -75,22 +75,26 @@ static void transmitReply(char* message)
 		(struct sockaddr *) &sin, sin_len);
 }
 
-// Allocates an array of strings to carry the int arrays
-// Each string has size of at most MSG_MAX_LEN
-// Caller must free strings
-static char* arrayToStrings(int* array, int len)
+// transmits array contents to client
+// Each message has size of at most MSG_MAX_LEN
+static void transmitArray(int* array, int len)
 {
-	char* outString = malloc(MSG_MAX_LEN * sizeof(*outString));
-	outString[0] = '\0';
+	char* outArrayString = malloc(MSG_MAX_LEN * sizeof(*outArrayString));
+	outArrayString[0] = '\0';
+
+	char* appendedStr = malloc(NUM_MAX_LEN * sizeof(*appendedStr));
+	appendedStr[0] = '\0';
 
 	for (int i = 0; i < len; i++)
 	{
-		char appendedStr[NUM_MAX_LEN];
 		sprintf(appendedStr, "%d", array[i]);
 
 		// Add comma for all except last element
 		if (i != len - 1) {
 			strcat(appendedStr, ", ");
+		}
+		else {
+			strcat(appendedStr, "\n");
 		}
 
 		// Newline per 10 numbers
@@ -99,15 +103,19 @@ static char* arrayToStrings(int* array, int len)
 		}
 
 		// Check outString size limit
-		if ((strlen(outString) + strlen(appendedStr)) > MSG_MAX_LEN) {
-			transmitReply(outString);
-			outString[0] = '\0';
+		if ((strlen(outArrayString) + strlen(appendedStr)) > MSG_MAX_LEN) {
+			transmitReply(outArrayString);
+			outArrayString[0] = '\0';
 		}
 
-		strcat(outString, appendedStr);
+		strcat(outArrayString, appendedStr);
 	}
 
-	return outString;
+	// Transmit final part of the array
+	transmitReply(outArrayString);
+
+	free(outArrayString);
+	free(appendedStr);
 }
 
 static void handleMessage(char* msg)
@@ -135,12 +143,11 @@ static void handleMessage(char* msg)
 			int* arrayContents = Sorter_getArrayData(&arrayLength);
 
 			// Array of strings to send back to client
-			char* arrayStrings = arrayToStrings(arrayContents, arrayLength);
+			transmitArray(arrayContents, arrayLength);
 			free(arrayContents);
 
-			// TODO: send only 1500 bytes of the array at a time
-			sprintf(msg, "%s\n", arrayStrings);
-			free(arrayStrings);
+			// Client reply is already handled, so clear the msg
+			msg[0] = '\0';
 		}
 		else {
 			// If subCommand is not numeric, atoi defaults to value 0
@@ -204,7 +211,9 @@ static void* udpListen()
 		// Modifies message to contain the reply
 		handleMessage(message);
 
-		transmitReply(message);
+		if (strlen(message) > 1) {
+			transmitReply(message);
+		}
 
 		// Need to break before starting next loop and
 		// entering the blocking recvfrom()
