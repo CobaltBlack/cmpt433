@@ -288,9 +288,46 @@ static void fillPlaybackBuffer(short *playbackBuffer, int size)
 	 *
 	 */
 
+	memset(playbackBuffer, 0, size * sizeof(*playbackBuffer));
 
 
+	for (int i = 0; i < MAX_SOUND_BITES; i++) {
+		wavedata_t* pSound = soundBites[i].pSound;
+		if (pSound != NULL) {
+			continue;
+		}
 
+		// Add soundbite data to buffer
+
+		int startLocation = soundBites[i].location;
+		int endLocation = startLocation + size;
+
+		// If soundbite finished, free location
+		bool isSoundbiteDone = false;
+		if (endLocation > pSound->numSamples) {
+			endLocation = pSound->numSamples;
+			isSoundbiteDone = true;
+		}
+
+		int i_buffer = 0;
+		for (int i_data = startLocation; i_data < endLocation; i_data++) {
+
+			// TODO: Clip PCM values
+			playbackBuffer[j] += pSound->pData[i_data];
+
+			i_buffer++;
+		}
+
+
+		// If soundbite finished, free location
+		if (isSoundbiteDone) {
+			soundBites[i].pSound = NULL;
+			soundBites[i].location = 0;
+		}
+		else {
+			soundBites[i].location += size;
+		}
+	}
 
 }
 
