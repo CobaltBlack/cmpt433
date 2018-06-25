@@ -35,7 +35,7 @@ typedef struct {
 	// sound has already been played (and hence where to start playing next).
 	int location;
 } playbackSound_t;
-//static playbackSound_t soundBites[MAX_SOUND_BITES];
+static playbackSound_t soundBites[MAX_SOUND_BITES];
 
 // Playback threading
 void* playbackThread(void* arg);
@@ -52,9 +52,10 @@ void AudioMixer_init(void)
 	// Initialize the currently active sound-bites being played
 	// REVISIT:- Implement this. Hint: set the pSound pointer to NULL for each
 	//     sound bite.
-
-
-
+	for (int i = 0; i < MAX_SOUND_BITES; i++) {
+		soundBites[i].pSound = NULL;
+		soundBites[i].location = 0;
+	}
 
 	// Open the PCM output
 	int err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
@@ -156,10 +157,24 @@ void AudioMixer_queueSound(wavedata_t *pSound)
 	 *    not being able to play another wave file.
 	 */
 
+	bool foundSlot = false;
 
+	// Put pSound into a free slot
+	for (int i = 0; i < MAX_SOUND_BITES; i++) {
+		if (soundBites[i].pSound != NULL) {
+			continue;
+		}
 
+		// TODO: thread safety
+		soundBites[i].pSound = pSound;
+		soundBites[i].location = 0;
 
+		foundSlot = true;
+	}
 
+	if (!foundSlot) {
+		// TODO: log error
+	}
 }
 
 void AudioMixer_cleanup(void)
@@ -272,8 +287,6 @@ static void fillPlaybackBuffer(short *playbackBuffer, int size)
 	 *          ... use someNum vs myArray[someIdx].value;
 	 *
 	 */
-
-
 
 
 
