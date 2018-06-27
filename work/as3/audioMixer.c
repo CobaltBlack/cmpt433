@@ -288,8 +288,10 @@ static void fillPlaybackBuffer(short *playbackBuffer, int size)
 	 *
 	 */
 
-	memset(playbackBuffer, 0, size * sizeof(*playbackBuffer));
+	int* tempPlaybackBuffer = malloc(size * sizeof(tempPlaybackBuffer));
+	memset(tempPlaybackBuffer, 0, size * sizeof(*tempPlaybackBuffer));
 
+	memset(playbackBuffer, 0, size * sizeof(*playbackBuffer));
 
 	for (int i = 0; i < MAX_SOUND_BITES; i++) {
 		wavedata_t* pSound = soundBites[i].pSound;
@@ -313,11 +315,10 @@ static void fillPlaybackBuffer(short *playbackBuffer, int size)
 		for (int i_data = startLocation; i_data < endLocation; i_data++) {
 
 			// TODO: Clip PCM values
-			playbackBuffer[j] += pSound->pData[i_data];
+			tempPlaybackBuffer[i_buffer] += pSound->pData[i_data];
 
 			i_buffer++;
 		}
-
 
 		// If soundbite finished, free location
 		if (isSoundbiteDone) {
@@ -329,6 +330,20 @@ static void fillPlaybackBuffer(short *playbackBuffer, int size)
 		}
 	}
 
+	// Clip values before storing into playbackBuffer
+	for (int i = 0; i < size; i++) {
+		if (tempPlaybackBuffer[i] > SHRT_MAX) {
+			playbackBuffer[i] = SHRT_MAX;
+		}
+		else if (tempPlaybackBuffer[i] < SHRT_MIN) {
+			playbackBuffer[i] = SHRT_MIN;
+		}
+		else {
+			playbackBuffer[i] = (short) tempPlaybackBuffer[i];
+		}
+	}
+
+	free(tempPlaybackBuffer);
 }
 
 
@@ -338,7 +353,6 @@ void* playbackThread(void* arg)
 	while (!stopping) {
 		// Generate next block of audio
 		fillPlaybackBuffer(playbackBuffer, playbackBufferSize);
-
 
 		// Output the audio
 		snd_pcm_sframes_t frames = snd_pcm_writei(handle,
@@ -362,19 +376,3 @@ void* playbackThread(void* arg)
 
 	return NULL;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
