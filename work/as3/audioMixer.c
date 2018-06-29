@@ -36,26 +36,30 @@ typedef struct {
 	int location;
 } playbackSound_t;
 static playbackSound_t soundBites[MAX_SOUND_BITES];
+static pthread_mutex_t soundBitesMutex = PTHREAD_MUTEX_INITIALIZER;
 
 // Playback threading
 void* playbackThread(void* arg);
 static _Bool stopping = false;
 static pthread_t playbackThreadId;
-//static pthread_mutex_t audioMutex = PTHREAD_MUTEX_INITIALIZER;
 
 static int volume = 0;
 
 void AudioMixer_init(void)
 {
+	pthread_mutex_init(&soundBitesMutex, NULL);
+
 	AudioMixer_setVolume(DEFAULT_VOLUME);
 
 	// Initialize the currently active sound-bites being played
 	// REVISIT:- Implement this. Hint: set the pSound pointer to NULL for each
 	//     sound bite.
+	pthread_mutex_lock(&soundBitesMutex);
 	for (int i = 0; i < MAX_SOUND_BITES; i++) {
 		soundBites[i].pSound = NULL;
 		soundBites[i].location = 0;
 	}
+	pthread_mutex_unlock(&soundBitesMutex);
 
 	// Open the PCM output
 	int err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
@@ -160,20 +164,22 @@ void AudioMixer_queueSound(wavedata_t *pSound)
 	bool foundSlot = false;
 
 	// Put pSound into a free slot
+	pthread_mutex_lock(&soundBitesMutex);
 	for (int i = 0; i < MAX_SOUND_BITES; i++) {
 		if (soundBites[i].pSound != NULL) {
 			continue;
 		}
 
-		// TODO: thread safety
 		soundBites[i].pSound = pSound;
 		soundBites[i].location = 0;
-
 		foundSlot = true;
+
+		break;
 	}
+	pthread_mutex_unlock(&soundBitesMutex);
 
 	if (!foundSlot) {
-		// TODO: log error
+		printf("AudioMixer: MAX_SOUND_BITES limit reached\n");
 	}
 }
 
@@ -293,20 +299,20 @@ static void fillPlaybackBuffer(short *playbackBuffer, int size)
 
 	memset(playbackBuffer, 0, size * sizeof(*playbackBuffer));
 
+	pthread_mutex_lock(&soundBitesMutex);
 	for (int i = 0; i < MAX_SOUND_BITES; i++) {
 		wavedata_t* pSound = soundBites[i].pSound;
-		if (pSound != NULL) {
+		int startLocation = soundBites[i].location;
+		if (pSound == NULL) {
 			continue;
 		}
 
 		// Add soundbite data to buffer
-
-		int startLocation = soundBites[i].location;
 		int endLocation = startLocation + size;
 
 		// If soundbite finished, free location
 		bool isSoundbiteDone = false;
-		if (endLocation > pSound->numSamples) {
+		if (endLocation >= pSound->numSamples) {
 			endLocation = pSound->numSamples;
 			isSoundbiteDone = true;
 		}
@@ -329,6 +335,7 @@ static void fillPlaybackBuffer(short *playbackBuffer, int size)
 			soundBites[i].location += size;
 		}
 	}
+	pthread_mutex_unlock(&soundBitesMutex);
 
 	// Clip values before storing into playbackBuffer
 	for (int i = 0; i < size; i++) {

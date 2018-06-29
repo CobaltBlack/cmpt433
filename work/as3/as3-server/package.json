@@ -1,0 +1,9 @@
+{
+	"name": "beatbox-server",
+	"version": "0.0.1",
+	"description": "CMPT 433 Assignment 3 Beatbox Server",
+	"dependencies": {
+		"socket.io": "~0.9.6",
+		"mime": "~1.2.7"
+	}
+}

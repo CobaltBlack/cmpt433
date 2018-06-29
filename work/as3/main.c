@@ -5,6 +5,7 @@
 #include <time.h>
 
 #include "audioMixer.h"
+#include "audioPlayer.h"
 #include "fileutils.h"
 #include "joystick.h"
 
@@ -12,16 +13,18 @@ static pthread_mutex_t mainMutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void initializeModules()
 {
-	srand(time(NULL));
-
 	Joystick_init();
+	// Accelerometer
 	AudioMixer_init();
+	AudioPlayer_init();
+	// udpInterface
 }
 
 static void shutdownModules()
 {
-	Joystick_shutdown();
+	AudioPlayer_shutdown();
 	AudioMixer_cleanup();
+	Joystick_shutdown();
 }
 
 int main()

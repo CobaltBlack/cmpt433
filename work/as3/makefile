@@ -24,3 +24,5 @@ node:
 
 clean:
 	rm $(OUTDIR)/$(OUTFILE)
+	rm -R $(OUTDIR)/beatbox-wav-files
+	rm -R $(OUTDIR)/beatbox-server-copy
