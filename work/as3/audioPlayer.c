@@ -7,14 +7,13 @@
 
 #include <pthread.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "audioMixer.h"
 #include "fileutils.h"
 
 #include "audioPlayer.h"
 
-#define MAX_BPM 300
-#define MIN_BPM 40
 #define SEC_PER_MIN 60
 #define MS_PER_SEC 1000
 #define NS_PER_MS 1000000
@@ -24,7 +23,7 @@ static pthread_t pBeatThread;
 static bool isEnabled = false;
 
 static int currentBpm = 120;
-static AudioPlayerBeatMode currentBeatMode = AUDIOPLAYER_MODE_NONE;
+static AudioPlayerBeatMode currentBeatMode = AUDIOPLAYER_MODE_ROCK1;
 
 static const char* soundsDirectory = "beatbox-wav-files";
 static const char* bassDrumFilename = "100051__menegass__gui-drum-bd-hard.wav";
@@ -83,6 +82,23 @@ void AudioPlayer_setBeatMode(AudioPlayerBeatMode mode)
 	currentBeatMode = mode;
 }
 
+void AudioPlayer_setNextBeatMode()
+{
+	AudioPlayerBeatMode currentMode = AudioPlayer_getBeatMode();
+	if (currentMode == AUDIOPLAYER_MODE_NONE) {
+		printf("SET TO ROCK1\n");
+		AudioPlayer_setBeatMode(AUDIOPLAYER_MODE_ROCK1);
+	}
+	else if (currentMode == AUDIOPLAYER_MODE_ROCK1) {
+		printf("SET TO ROCK2\n");
+		AudioPlayer_setBeatMode(AUDIOPLAYER_MODE_ROCK2);
+	}
+	else if (currentMode == AUDIOPLAYER_MODE_ROCK2) {
+		printf("SET TO NONE\n");
+		AudioPlayer_setBeatMode(AUDIOPLAYER_MODE_NONE);
+	}
+}
+
 int AudioPlayer_getBpm()
 {
 	return currentBpm;
@@ -90,13 +106,25 @@ int AudioPlayer_getBpm()
 
 void AudioPlayer_setBpm(int bpm)
 {
-	if (bpm > MAX_BPM) {
-		bpm = MAX_BPM;
+	if (bpm < MIN_BPM || MAX_BPM < bpm) {
+		printf("ERROR: BPM must be between %d and %d.\n", MIN_BPM, MAX_BPM);
+		return;
 	}
-	else if (bpm < MIN_BPM){
-		bpm = MIN_BPM;
-	}
+
 	currentBpm = bpm;
+}
+
+void AudioPlayer_adjustBpm(int bpmDiff)
+{
+	int newBpm = bpmDiff + AudioPlayer_getBpm();
+	if (newBpm > MAX_BPM) {
+		newBpm = MAX_BPM;
+	}
+	else if (newBpm < MIN_BPM) {
+		newBpm = MIN_BPM;
+	}
+
+	AudioPlayer_setBpm(newBpm);
 }
 
 static void sleepMs(int ms)
@@ -182,8 +210,6 @@ static void playRock2Beat()
 static void* playBeatThread()
 {
 	while (isEnabled) {
-
-		currentBeatMode = AUDIOPLAYER_MODE_ROCK2;
 
 		// Each loop plays 4 beats of chosen beat mode
 		if (currentBeatMode == AUDIOPLAYER_MODE_ROCK1) {

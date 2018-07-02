@@ -6,8 +6,8 @@
 #include <pthread.h>
 #include <limits.h>
 #include <alloca.h> // needed for mixer
-#include "audioMixer.h"
 
+#include "audioMixer.h"
 
 static snd_pcm_t *handle;
 
@@ -219,7 +219,7 @@ int AudioMixer_getVolume()
 void AudioMixer_setVolume(int newVolume)
 {
 	// Ensure volume is reasonable; If so, cache it for later getVolume() calls.
-	if (newVolume < 0 || newVolume > AUDIOMIXER_MAX_VOLUME) {
+	if (newVolume < 0 || AUDIOMIXER_MAX_VOLUME < newVolume) {
 		printf("ERROR: Volume must be between 0 and 100.\n");
 		return;
 	}
@@ -247,6 +247,18 @@ void AudioMixer_setVolume(int newVolume)
     snd_mixer_close(handle);
 }
 
+void AudioMixer_adjustVolume(int volumeDiff)
+{
+	int newVolume = volumeDiff + AudioMixer_getVolume();
+	if (newVolume > AUDIOMIXER_MAX_VOLUME) {
+		newVolume = AUDIOMIXER_MAX_VOLUME;
+	}
+	else if (newVolume < 0) {
+		newVolume = 0;
+	}
+
+	AudioMixer_setVolume(newVolume);
+}
 
 // Fill the playbackBuffer array with new PCM values to output.
 //    playbackBuffer: buffer to fill with new PCM data from sound bites.

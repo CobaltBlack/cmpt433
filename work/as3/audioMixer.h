@@ -30,4 +30,7 @@ void AudioMixer_queueSound(wavedata_t *pSound);
 int  AudioMixer_getVolume();
 void AudioMixer_setVolume(int newVolume);
 
+// Increments/decrements volume by the amount of bpmDiff
+void AudioMixer_adjustVolume(int volumeDiff);
+
 #endif
