@@ -8,6 +8,7 @@
 #include "audioPlayer.h"
 #include "fileutils.h"
 #include "joystick.h"
+#include "udplistener.h"
 
 static pthread_mutex_t mainMutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -17,11 +18,12 @@ static void initializeModules()
 	// Accelerometer
 	AudioMixer_init();
 	AudioPlayer_init();
-	// udpInterface
+	UdpListener_init();
 }
 
 static void shutdownModules()
 {
+	UdpListener_shutdown();
 	AudioPlayer_shutdown();
 	AudioMixer_cleanup();
 	Joystick_shutdown();

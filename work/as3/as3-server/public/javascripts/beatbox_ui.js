@@ -19,7 +19,7 @@ $(document).ready(function() {
 	});
 
 	// Incoming control messages
-	socket.on('commandReply', function(data) {
+	socket.on('serverReply', function(data) {
 		handleServerCommand(data);
 	});
 
@@ -28,9 +28,9 @@ $(document).ready(function() {
 });
 
 function handleServerCommand(data) {
-	console.log(data);
+	console.log("received server command:", data);
 }
 
 function sendServerCommand(data) {
-	socket.emit('prime', data);
+	socket.emit('clientCommand', data);
 };

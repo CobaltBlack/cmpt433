@@ -18,9 +18,9 @@ exports.listen = function(server) {
 };
 
 function handleCommand(socket) {
-	// Pased string of comamnd to relay
-	socket.on('prime', function(data) {
-		console.log('prime command: ' + data);
+	// Pased string of command to relay
+	socket.on('clientCommand', function(data) {
+		console.log('clientCommand: ' + data);
 		
 		// Info for connecting to the local process via UDP
 		var PORT = 12345;
@@ -44,7 +44,7 @@ function handleCommand(socket) {
 		    console.log("UDP Client: message Rx" + remote.address + ':' + remote.port +' - ' + message);
 		    
 		    var reply = message.toString('utf8')
-		    socket.emit('commandReply', reply);
+		    socket.emit('serverReply', reply);
 		    
 		    client.close();
 
