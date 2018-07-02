@@ -86,15 +86,12 @@ void AudioPlayer_setNextBeatMode()
 {
 	AudioPlayerBeatMode currentMode = AudioPlayer_getBeatMode();
 	if (currentMode == AUDIOPLAYER_MODE_NONE) {
-		printf("SET TO ROCK1\n");
 		AudioPlayer_setBeatMode(AUDIOPLAYER_MODE_ROCK1);
 	}
 	else if (currentMode == AUDIOPLAYER_MODE_ROCK1) {
-		printf("SET TO ROCK2\n");
 		AudioPlayer_setBeatMode(AUDIOPLAYER_MODE_ROCK2);
 	}
 	else if (currentMode == AUDIOPLAYER_MODE_ROCK2) {
-		printf("SET TO NONE\n");
 		AudioPlayer_setBeatMode(AUDIOPLAYER_MODE_NONE);
 	}
 }
