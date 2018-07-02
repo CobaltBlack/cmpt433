@@ -4,28 +4,37 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "accelerometer.h"
 #include "audioMixer.h"
 #include "audioPlayer.h"
 #include "fileutils.h"
 #include "joystick.h"
 #include "udplistener.h"
+#include "zencontrol.h"
 
 static pthread_mutex_t mainMutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void initializeModules()
 {
 	Joystick_init();
-	// Accelerometer
+	Accelerometer_init();
+
 	AudioMixer_init();
 	AudioPlayer_init();
+
+	ZenControl_init();
 	UdpListener_init();
 }
 
 static void shutdownModules()
 {
 	UdpListener_shutdown();
+	ZenControl_shutdown();
+
 	AudioPlayer_shutdown();
 	AudioMixer_cleanup();
+
+	Accelerometer_shutdown();
 	Joystick_shutdown();
 }
 
