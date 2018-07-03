@@ -21,6 +21,8 @@ typedef enum
 	AUDIOPLAYER_MODE_ROCK2,
 } AudioPlayerBeatMode;
 
+wavedata_t bassDrumSound, hihatSound, snareSound;
+
 void AudioPlayer_init(void);
 void AudioPlayer_shutdown(void);
 

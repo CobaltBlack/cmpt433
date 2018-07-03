@@ -15,8 +15,8 @@
 #include "audioPlayer.h"
 
 #define SEC_PER_MIN 60
-#define MS_PER_SEC 1000
-#define NS_PER_MS 1000000
+#define MS_PER_SEC 1000L
+#define NS_PER_MS 1000000L
 #define HALF 1/2
 
 static pthread_t pBeatThread;
@@ -29,8 +29,6 @@ static const char* soundsDirectory = "beatbox-wav-files";
 static const char* bassDrumFilename = "100051__menegass__gui-drum-bd-hard.wav";
 static const char* hihatFilename = "100053__menegass__gui-drum-cc.wav";
 static const char* snareFilename = "100059__menegass__gui-drum-snare-soft.wav";
-
-static wavedata_t bassDrumSound, hihatSound, snareSound;
 
 //
 // Prototypes
@@ -123,6 +121,10 @@ void AudioPlayer_adjustBpm(int bpmDiff)
 
 	AudioPlayer_setBpm(newBpm);
 }
+
+//
+// Private functions
+//
 
 static void sleepMs(int ms)
 {

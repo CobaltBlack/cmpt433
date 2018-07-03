@@ -4,10 +4,15 @@
 #ifndef _ACCELEROMETER_H_
 #define _ACCELEROMETER_H_
 
+typedef struct {
+	short x;
+	short y;
+	short z;
+} AccelerometerOutput_t;
+
 void Accelerometer_init();
 void Accelerometer_shutdown();
 
-// Supports returning only one input direction at a time
-//JoystickDirection Joystick_getInput();
+AccelerometerOutput_t Accelerometer_getReadings();
 
 #endif
