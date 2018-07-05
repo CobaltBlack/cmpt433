@@ -84,6 +84,8 @@ static void transmitReply(char* message)
 static void handleMessage(char* msg)
 {
 	char* command = strtok(msg, " \n");
+
+	// Change beat mode
 	if (strcmp(command, "mode") == 0) {
 		char* subCommand = strtok(NULL, " \n");
 		if (!subCommand) {
@@ -107,6 +109,7 @@ static void handleMessage(char* msg)
 		sprintf(msg, "mode %s", modeId);
 	}
 
+	// Play a sound
 	else if (strcmp(command, "play") == 0) {
 		char* subCommand = strtok(NULL, " \n");
 
@@ -130,6 +133,7 @@ static void handleMessage(char* msg)
 		msg[0] = '\0';
 	}
 
+	// Change volume
 	else if (strcmp(command, "volume") == 0) {
 		char* subCommand = strtok(NULL, " \n");
 		AudioMixer_setVolume(atoi(subCommand));
@@ -137,6 +141,7 @@ static void handleMessage(char* msg)
 		sprintf(msg, "volume %d", AudioMixer_getVolume());
 	}
 
+	// Change bpm
 	else if (strcmp(command, "bpm") == 0) {
 		char* subCommand = strtok(NULL, " \n");
 		AudioPlayer_setBpm(atoi(subCommand));
@@ -144,6 +149,7 @@ static void handleMessage(char* msg)
 		sprintf(msg, "bpm %d", AudioPlayer_getBpm());
 	}
 
+	// Reply with a status update of all components
 	else if (strcmp(command, "update") == 0) {
 
 		char modeId[10];
@@ -156,8 +162,7 @@ static void handleMessage(char* msg)
 				getSystemUptime());
 	}
 
-	else
-	{
+	else {
 		sprintf(msg, "error Unrecognized command.");
 	}
 }

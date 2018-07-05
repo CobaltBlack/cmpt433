@@ -116,7 +116,9 @@ static void* zenControl()
 	bool zReady = true;
 
 	while (isEnabled) {
+		//
 		// Process any joystick input
+		//
 		JoystickDirection joystickInput = Joystick_getInput();
 		if (joystickInput != JOYSTICK_NOOPT) {
 			// Up and down adjusts volume
@@ -149,7 +151,9 @@ static void* zenControl()
 			}
 		}
 
+		//
 		// Process any accelerometer input
+		//
 		AccelerometerOutput_t accelRes = Accelerometer_getReadings();
 		accelRes.z = accelRes.z - ACCELEROMETER_GRAVITY;
 
