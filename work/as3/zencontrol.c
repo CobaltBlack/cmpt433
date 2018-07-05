@@ -131,13 +131,11 @@ static void* zenControl()
 			// Left and right adjusts bpm
 			else if (joystickInput == JOYSTICK_LEFT) {
 				if (shouldDebounceAction(&joystickLeftTimer)) {
-					printf("JOYSTICK_LEFT\n");
 					AudioPlayer_adjustBpm(BPM_DECREMENT_AMOUNT);
 				}
 			}
 			else if (joystickInput == JOYSTICK_RIGHT) {
 				if (shouldDebounceAction(&joystickRightTimer)) {
-					printf("JOYSTICK_RIGHT\n");
 					AudioPlayer_adjustBpm(BPM_INCREMENT_AMOUNT);
 				}
 			}
