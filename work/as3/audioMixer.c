@@ -218,11 +218,13 @@ int AudioMixer_getVolume()
 // Written by user "trenki".
 void AudioMixer_setVolume(int newVolume)
 {
-	// Ensure volume is reasonable; If so, cache it for later getVolume() calls.
-	if (newVolume < 0 || AUDIOMIXER_MAX_VOLUME < newVolume) {
-		printf("ERROR: Volume must be between 0 and 100.\n");
-		return;
+	if (newVolume > AUDIOMIXER_MAX_VOLUME) {
+		newVolume = AUDIOMIXER_MAX_VOLUME;
 	}
+	else if (newVolume < 0) {
+		newVolume = 0;
+	}
+
 	volume = newVolume;
 
     long min, max;
@@ -249,15 +251,7 @@ void AudioMixer_setVolume(int newVolume)
 
 void AudioMixer_adjustVolume(int volumeDiff)
 {
-	int newVolume = volumeDiff + AudioMixer_getVolume();
-	if (newVolume > AUDIOMIXER_MAX_VOLUME) {
-		newVolume = AUDIOMIXER_MAX_VOLUME;
-	}
-	else if (newVolume < 0) {
-		newVolume = 0;
-	}
-
-	AudioMixer_setVolume(newVolume);
+	AudioMixer_setVolume(volumeDiff + AudioMixer_getVolume());
 }
 
 // Fill the playbackBuffer array with new PCM values to output.
@@ -332,7 +326,6 @@ static void fillPlaybackBuffer(short *playbackBuffer, int size)
 		int i_buffer = 0;
 		for (int i_data = startLocation; i_data < endLocation; i_data++) {
 
-			// TODO: Clip PCM values
 			tempPlaybackBuffer[i_buffer] += pSound->pData[i_data];
 
 			i_buffer++;

@@ -21,6 +21,10 @@ function handleCommand(socket) {
 	// Pased string of command to relay
 	socket.on('clientCommand', function(data) {
 		console.log('clientCommand: ' + data);
+
+		if (data == "update") {
+			socket.emit('serverReply', "nodejsping");
+		}
 		
 		// Info for connecting to the local process via UDP
 		var PORT = 12345;

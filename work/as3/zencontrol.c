@@ -21,7 +21,7 @@
 #define NS_PER_MS 1000000
 
 #define POLL_INTERVAL_MS 10
-#define DEBOUNCE_INTERVAL_MS 100
+#define DEBOUNCE_INTERVAL_MS 200
 
 #define VOLUME_DECREMENT_AMOUNT -5
 #define VOLUME_INCREMENT_AMOUNT 5
@@ -111,7 +111,9 @@ static void* zenControl()
 
 	// Can only activate accelerometer "drumming" once these are reset back to true
 	// Reset these to true only when x y or z returns to neutral position
-	bool xReady, yReady, zReady = true;
+	bool xReady = true;
+	bool yReady = true;
+	bool zReady = true;
 
 	while (isEnabled) {
 		// Process any joystick input

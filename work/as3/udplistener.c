@@ -14,6 +14,10 @@
 #include <string.h>			// for strncmp()
 #include <unistd.h>			// for close()
 
+#include "audioMixer.h"
+#include "audioPlayer.h"
+#include "fileutils.h"
+
 #include "udplistener.h"
 
 #define MSG_MAX_LEN 1500
@@ -21,6 +25,9 @@
 
 #define NUM_MAX_LEN 10
 #define NUM_PER_NEWLINE 10
+
+static const char* systemUptimePath = "/proc/uptime";
+#define UPTIME_INFO_LEN 100
 
 static pthread_t pListenerThread;
 static bool isEnabled = false;
@@ -55,6 +62,16 @@ void UdpListener_shutdown()
 // Private functions
 //
 
+// Returns system uptime in seconds
+static int getSystemUptime()
+{
+	char contents[UPTIME_INFO_LEN];
+	readFromFile(systemUptimePath, contents);
+
+	char* uptimeStr = strtok(contents, " .");
+	return atoi(uptimeStr);
+}
+
 static void transmitReply(char* message)
 {
 	unsigned int sin_len = sizeof(sin);
@@ -66,59 +83,83 @@ static void transmitReply(char* message)
 
 static void handleMessage(char* msg)
 {
-	printf("Msg received: %s\n", msg);
+	char* command = strtok(msg, " \n");
+	if (strcmp(command, "mode") == 0) {
+		char* subCommand = strtok(NULL, " \n");
+		if (!subCommand) {
+			sprintf(msg, "error Unrecognized beat mode.");
+		}
+		else if (strcmp(subCommand, AudioPlayer_modeId_None) == 0) {
+			AudioPlayer_setBeatMode(AUDIOPLAYER_MODE_NONE);
+		}
+		else if (strcmp(subCommand, AudioPlayer_modeId_Rock1) == 0) {
+			AudioPlayer_setBeatMode(AUDIOPLAYER_MODE_ROCK1);
+		}
+		else if (strcmp(subCommand, AudioPlayer_modeId_Rock2) == 0) {
+			AudioPlayer_setBeatMode(AUDIOPLAYER_MODE_ROCK2);
+		}
+		else {
+			sprintf(msg, "error Unrecognized beat mode.");
+		}
 
-//	char* command = strtok(msg, " \n");
-//	if (strcmp(command, "MODE") == 0) {
-//		strcpy(msg, helpText);
-//	}
-//	else if (strcmp(command, "count") == 0) {
-//		sprintf(msg, "Number of array sorted = [%llu]\n", Sorter_getNumberArraysSorted());
-//	}
-//	else if (strcmp(command, "get") == 0) {
-//		char* subCommand = strtok(NULL, " \n");
-//		printf("Subcommand is %s\n", subCommand);
-//
-//		if (!subCommand) {
-//			sprintf(msg, "Unrecognized command. Type \"help\"\n");
-//		}
-//		else if (strcmp(subCommand, "length") == 0) {
-//			sprintf(msg, "Current array length = [%d]\n", Sorter_getArrayLength());
-//		}
-//		else if (strcmp(subCommand, "array") == 0) {
-//			int arrayLength;
-//			int* arrayContents = Sorter_getArrayData(&arrayLength);
-//
-//			// Array of strings to send back to client
-//			transmitArray(arrayContents, arrayLength);
-//			free(arrayContents);
-//
-//			// Client reply is already handled, so clear the msg
-//			msg[0] = '\0';
-//		}
-//		else {
-//			// If subCommand is not numeric, atoi defaults to value 0
-//			int index = atoi(subCommand);
-//			int arrayLength = Sorter_getArrayLength();
-//			if (index < 1 || arrayLength < index) {
-//				sprintf(msg, "Error: Acceptable range for \"get\" is [%d] to [%d]\n", 1, arrayLength);
-//			}
-//			else
-//			{
-//				// Subtract 1 because we out output to be 1-indexed
-//				sprintf(msg, "Value [%d] = [%d]\n", index, Sorter_getArrayElement(index-1));
-//			}
-//		}
-//	}
-//	else if (strcmp(command, "stop") == 0) {
-//		isEnabled = false;
-//		sprintf(msg, "Programming terminating\n");
-//		triggerShutdown();
-//	}
-//	else
-//	{
-//		sprintf(msg, "Unrecognized command. Type \"help\"\n");
-//	}
+		char modeId[10];
+		AudioPlayer_getBeatModeId(modeId);
+		sprintf(msg, "mode %s", modeId);
+	}
+
+	else if (strcmp(command, "play") == 0) {
+		char* subCommand = strtok(NULL, " \n");
+
+		if (!subCommand) {
+			sprintf(msg, "error Unrecognized sound.");
+		}
+		else if (strcmp(subCommand, "hihat") == 0) {
+			AudioMixer_queueSound(&hihatSound);
+		}
+		else if (strcmp(subCommand, "snare") == 0) {
+			AudioMixer_queueSound(&snareSound);
+		}
+		else if (strcmp(subCommand, "bass") == 0) {
+			AudioMixer_queueSound(&bassDrumSound);
+		}
+		else {
+			sprintf(msg, "error Unrecognized sound.");
+		}
+
+		// No reply needed when playing a sound
+		msg[0] = '\0';
+	}
+
+	else if (strcmp(command, "volume") == 0) {
+		char* subCommand = strtok(NULL, " \n");
+		AudioMixer_setVolume(atoi(subCommand));
+
+		sprintf(msg, "volume %d", AudioMixer_getVolume());
+	}
+
+	else if (strcmp(command, "bpm") == 0) {
+		char* subCommand = strtok(NULL, " \n");
+		AudioPlayer_setBpm(atoi(subCommand));
+
+		sprintf(msg, "bpm %d", AudioPlayer_getBpm());
+	}
+
+	else if (strcmp(command, "update") == 0) {
+
+		char modeId[10];
+		AudioPlayer_getBeatModeId(modeId);
+
+		sprintf(msg, "bpm %d;volume %d;mode %s;uptime %d",
+				AudioPlayer_getBpm(),
+				AudioMixer_getVolume(),
+				modeId,
+				getSystemUptime());
+	}
+
+	else
+	{
+		sprintf(msg, "error Unrecognized command.");
+	}
 }
 
 // Code referenced from demo_udpListen.c

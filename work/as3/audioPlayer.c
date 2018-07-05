@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>			// for strncmp()
 
 #include "audioMixer.h"
 #include "fileutils.h"
@@ -75,6 +76,20 @@ AudioPlayerBeatMode AudioPlayer_getBeatMode()
 	return currentBeatMode;
 }
 
+void AudioPlayer_getBeatModeId(char* outBuff)
+{
+	AudioPlayerBeatMode currentMode = AudioPlayer_getBeatMode();
+	if (currentMode == AUDIOPLAYER_MODE_NONE) {
+		strcpy(outBuff, AudioPlayer_modeId_None);
+	}
+	else if (currentMode == AUDIOPLAYER_MODE_ROCK1) {
+		strcpy(outBuff, AudioPlayer_modeId_Rock1);
+	}
+	else if (currentMode == AUDIOPLAYER_MODE_ROCK2) {
+		strcpy(outBuff, AudioPlayer_modeId_Rock2);
+	}
+}
+
 void AudioPlayer_setBeatMode(AudioPlayerBeatMode mode)
 {
 	currentBeatMode = mode;
@@ -99,19 +114,8 @@ int AudioPlayer_getBpm()
 	return currentBpm;
 }
 
-void AudioPlayer_setBpm(int bpm)
+void AudioPlayer_setBpm(int newBpm)
 {
-	if (bpm < MIN_BPM || MAX_BPM < bpm) {
-		printf("ERROR: BPM must be between %d and %d.\n", MIN_BPM, MAX_BPM);
-		return;
-	}
-
-	currentBpm = bpm;
-}
-
-void AudioPlayer_adjustBpm(int bpmDiff)
-{
-	int newBpm = bpmDiff + AudioPlayer_getBpm();
 	if (newBpm > MAX_BPM) {
 		newBpm = MAX_BPM;
 	}
@@ -119,7 +123,12 @@ void AudioPlayer_adjustBpm(int bpmDiff)
 		newBpm = MIN_BPM;
 	}
 
-	AudioPlayer_setBpm(newBpm);
+	currentBpm = newBpm;
+}
+
+void AudioPlayer_adjustBpm(int bpmDiff)
+{
+	AudioPlayer_setBpm(bpmDiff + AudioPlayer_getBpm());
 }
 
 //
@@ -179,30 +188,27 @@ static void playRock2Beat()
 	AudioMixer_queueSound(&bassDrumSound);
 	sleepMs(getHalfBeatDurationMs());
 
+	sleepMs(getHalfBeatDurationMs() * HALF);
+	AudioMixer_queueSound(&bassDrumSound);
+	sleepMs(getHalfBeatDurationMs() * HALF);
+
+	AudioMixer_queueSound(&snareSound);
 	AudioMixer_queueSound(&hihatSound);
+	sleepMs(getHalfBeatDurationMs());
+
+	sleepMs(getHalfBeatDurationMs());
+
+	AudioMixer_queueSound(&hihatSound);
+	sleepMs(getHalfBeatDurationMs() * HALF);
+	sleepMs(getHalfBeatDurationMs() * HALF);
+
+	AudioMixer_queueSound(&bassDrumSound);
 	sleepMs(getHalfBeatDurationMs());
 
 	AudioMixer_queueSound(&hihatSound);
 	AudioMixer_queueSound(&snareSound);
 	sleepMs(getHalfBeatDurationMs());
 
-	AudioMixer_queueSound(&hihatSound);
-	sleepMs(getHalfBeatDurationMs());
-
-	AudioMixer_queueSound(&hihatSound);
-	AudioMixer_queueSound(&bassDrumSound);
-	sleepMs(getHalfBeatDurationMs() * HALF);
-	AudioMixer_queueSound(&bassDrumSound);
-	sleepMs(getHalfBeatDurationMs() * HALF);
-
-	AudioMixer_queueSound(&hihatSound);
-	sleepMs(getHalfBeatDurationMs());
-
-	AudioMixer_queueSound(&hihatSound);
-	AudioMixer_queueSound(&snareSound);
-	sleepMs(getHalfBeatDurationMs());
-
-	AudioMixer_queueSound(&hihatSound);
 	sleepMs(getHalfBeatDurationMs());
 }
 
