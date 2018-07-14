@@ -116,24 +116,31 @@ static unsigned short morsecode_codes[] = {
 static ssize_t my_read(struct file *file,
 		char *buff, size_t count, loff_t *ppos)
 {
-	printk(KERN_INFO "<---- Morse code my_read().\n");
-	return 0;
+	int num_bytes_read;
+
+	// Pull all available data from fifo into user buffer
+	num_bytes_read = 0;
+	if (kfifo_to_user(&my_fifo, buff, count, &num_bytes_read)) {
+		return -EFAULT;
+	}
+
+	return num_bytes_read ;
 }
 
 static ssize_t my_write(struct file *file,
 		const char *buff, size_t count, loff_t *ppos)
 {
 	int i, j, k, chIndex, codeEndIndex;
-	int numBits;
-	unsigned short code;
-	unsigned short bit;
+	int numBits;	// Number of bits in our data type for each morse code
+	int bitCounter;	// Counts how many bits have been "1" to determine if its a dot or dash
+	unsigned short code;	// Morse code for one letter
+	unsigned short bit;		// Single bit read from morse code
 
 	numBits = BITS_PER_BYTE * sizeof(unsigned short);
 
-	printk(KERN_INFO "<---- my_write() - numBits=%d./\n", numBits);
-
 	for (i = 0; i < count; i++) {
 		char ch;
+		code = 0;
 
 		if (copy_from_user(&ch, &buff[i], sizeof(ch))) {
 			return -EFAULT;
@@ -144,7 +151,7 @@ static ssize_t my_write(struct file *file,
 			msleep(dottime * WORD_GAP_DOTTIMES);
 
 			// Add spaces to the FIFO
-			for (j = 0; j < WORD_GAP_NUM_SPACES: j++) {
+			for (j = 0; j < WORD_GAP_NUM_SPACES; j++) {
 				if (!kfifo_put(&my_fifo, ' ')) {
 					return -EFAULT;
 				}
@@ -159,34 +166,71 @@ static ssize_t my_write(struct file *file,
 			code = morsecode_codes[chIndex];
 		}
 
-		printk(KERN_INFO "<---- Morse code process [%c].\n", ch);
+		// Blink the LEDs if we have a letter
+		if (code) {
+			// Find at what index the morse code ends
+			for (k = 0; k < numBits; k++) {
+				bit = (code & ( 1 << k )) >> k;
 
-		// Find at what index the morse code ends
-		for (k = 0; k < numBits; k++) {
-			bit = (code & ( 1 << k )) >> k;
+				if (bit) {
+					codeEndIndex = k;
+					break;
+				}
+			}
 
-			if (bit) {
-				codeEndIndex = k;
-				break;
+			// Read the morse code starting at MSB until the end index
+			bitCounter = 0;
+			for (k = numBits - 1; k >= codeEndIndex; k--) {
+				bit = (code & ( 1 << k )) >> k;
+
+				led_setEnabled(bit);
+				msleep(dottime);
+
+				// Insert dash/dot into FIFO by counting how many bits are 1
+				if (bit) {
+					bitCounter++;
+				}
+				else {
+					if (bitCounter == 1) {
+						if (!kfifo_put(&my_fifo, '.')) {
+							return -EFAULT;
+						}
+					}
+					else if (bitCounter == 3) {
+						if (!kfifo_put(&my_fifo, '-')) {
+							return -EFAULT;
+						}
+					}
+
+					bitCounter = 0;
+				}
+			}
+
+			// Add the final dot/dash to FIFO
+			if (bitCounter == 1) {
+				if (!kfifo_put(&my_fifo, '.')) {
+					return -EFAULT;
+				}
+			}
+			else if (bitCounter == 3) {
+				if (!kfifo_put(&my_fifo, '-')) {
+					return -EFAULT;
+				}
+			}
+
+			// Handle the gap between letters
+			led_setEnabled(0);
+			msleep(dottime * CHAR_GAP_DOTTIMES);
+
+			if (!kfifo_put(&my_fifo, ' ')) {
+				return -EFAULT;
 			}
 		}
+	}
 
-		// Read the morse code starting at MSB until the end index
-		for (k = numBits - 1; k >= codeEndIndex; k--) {
-			bit = (code & ( 1 << k )) >> k;
 
-			led_setEnabled(bit);
-			msleep(dottime);
-
-			// TODO: Insert dash/dot/space into FIFO
-		}
-
-		// Sleep for gap between letters
-		led_setEnabled(0);
-		msleep(dottime * CHAR_GAP_DOTTIMES);
-
-		// Insert dot/dash into fifo
-
+	if (!kfifo_put(&my_fifo, '\n')) {
+		return -EFAULT;
 	}
 
 	*ppos += count;
