@@ -1,0 +1,132 @@
+
+root@beaglebone:/mnt/remote/drivers# uname -r
+4.4.95-liufengl-bone19
+root@beaglebone:/mnt/remote/drivers# cat /proc/cmdline
+console=ttyO0,115200n8 root=/dev/mmcblk1p1 ro rootfstype=ext4 rootwait
+root@beaglebone:/mnt/remote/drivers# ifconfig
+eth0      Link encap:Ethernet  HWaddr 98:5d:ad:c7:5f:3b  
+          inet addr:192.168.1.70  Bcast:192.168.1.255  Mask:255.255.255.0
+          inet6 addr: fe80::9a5d:adff:fec7:5f3b/64 Scope:Link
+          inet6 addr: 2001:569:7946:5a00:9a5d:adff:fec7:5f3b/64 Scope:Global
+          UP BROADCAST RUNNING MULTICAST DYNAMIC  MTU:1500  Metric:1
+          RX packets:174 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:209 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:22540 (22.0 KiB)  TX bytes:27324 (26.6 KiB)
+          Interrupt:172 
+
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+          RX packets:160 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:160 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1 
+          RX bytes:12960 (12.6 KiB)  TX bytes:12960 (12.6 KiB)
+
+usb0      Link encap:Ethernet  HWaddr 98:5d:ad:c7:5f:3d  
+          inet addr:192.168.7.2  Bcast:192.168.7.3  Mask:255.255.255.252
+          inet6 addr: fe80::9a5d:adff:fec7:5f3d/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:53 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:28 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:7281 (7.1 KiB)  TX bytes:8178 (7.9 KiB)
+
+usb1      Link encap:Ethernet  HWaddr 98:5d:ad:c7:5f:40  
+          inet addr:192.168.6.2  Bcast:192.168.6.3  Mask:255.255.255.252
+          inet6 addr: fe80::9a5d:adff:fec7:5f40/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:112 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:32 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:19270 (18.8 KiB)  TX bytes:7551 (7.3 KiB)
+
+root@beaglebone:/mnt/remote/drivers#  export SLOTS=/sys/devices/platform/bone_ca 
+pemgr/slots
+root@beaglebone:/mnt/remote/drivers# echo ZENCAPE_LEDS > $SLOTS
+[  469.126689] bone_capemgr bone_capemgr: part_number 'ZENCAPE_LEDS', version 'N/A'
+[  469.134277] bone_capemgr bone_capemgr: slot #5: override
+[  469.139646] bone_capemgr bone_capemgr: Using override eeprom data at slot 5
+[  469.146755] bone_capemgr bone_capemgr: slot #5: 'Override Board Name,00A0,Override Manuf,ZENCAPE_LEDS'
+[  469.184285] bone_capemgr bone_capemgr: slot #5: dtbo 'ZENCAPE_LEDS-00A0.dtbo' loaded; overlay id #0
+root@beaglebone:/mnt/remote/drivers# modinfo morsecode.ko
+filename:       /mnt/remote/drivers/morsecode.ko
+license:        GPL
+description:    A morse code driver for as4
+author:         Eric Liu
+depends:        
+vermagic:       4.4.95-liufengl-bone19 mod_unload modversions ARMv7 thumb2 p2v8 
+parm:           dottime:Dottime in milliseconds (int)
+root@beaglebone:/mnt/remote/drivers# insmod morsecode.ko dottime=40
+[  545.091640] ----> Morse code driver init()
+root@beaglebone:/mnt/remote/drivers# lsmod
+Module                  Size  Used by
+morsecode               3088  0 
+snd_soc_davinci_mcasp    16463  0 
+snd_soc_edma            1482  1 snd_soc_davinci_mcasp
+snd_soc_omap            3314  1 snd_soc_davinci_mcasp
+snd_soc_core          158010  3 snd_soc_davinci_mcasp,snd_soc_edma,snd_soc_omap
+snd_pcm_dmaengine       5401  2 snd_soc_core,snd_soc_omap
+snd_pcm                80828  4 snd_soc_davinci_mcasp,snd_soc_core,snd_soc_omap,snd_pcm_dmaengine
+snd_timer              18513  1 snd_pcm
+snd                    58952  3 snd_soc_core,snd_timer,snd_pcm
+soundcore               7285  1 snd
+evdev                  10611  1 
+uio_pdrv_genirq         3629  0 
+uio                     9190  1 uio_pdrv_genirq
+8021q                  19014  0 
+garp                    6191  1 8021q
+mrp                     7495  1 8021q
+stp                     2309  1 garp
+llc                     5277  2 stp,garp
+usb_f_mass_storage     41446  2 
+usb_f_acm               7287  2 
+u_serial               10564  3 usb_f_acm
+usb_f_ecm               9848  2 
+usb_f_rndis            22675  2 
+u_ether                11397  2 usb_f_ecm,usb_f_rndis
+libcomposite           43441  16 usb_f_acm,usb_f_ecm,usb_f_rndis,usb_f_mass_storage
+spidev                  7608  0 
+tieqep                  9206  0 
+root@beaglebone:/mnt/remote/drivers# echo morse-code > /sys/class/leds/zencape\: 
+red/trigger 
+root@beaglebone:/mnt/remote/drivers# cat /sys/class/leds/zencape\:red/trigger 
+none rc-feedback kbd-scrolllock kbd-numlock kbd-capslock kbd-kanalock kbd-shiftlock kbd-altgrlock kbd-ctrllock kbd-altlock kbd-shiftllock kbd-shiftrlock kbd-ctrlllock kbd-ctrlrlock nand-disk usb-gadget usb-host mmc0 mmc1 timer oneshot heartbeat backlight gpio cpu0 default-on [morse-code] 
+root@beaglebone:/mnt/remote/drivers# echo 'Hello world.' > /dev/morse-code 
+root@beaglebone:/mnt/remote/drivers# cat /dev/morse-code 
+.... . .-.. .-.. ---    .-- --- .-. .-.. -.. 
+root@beaglebone:/mnt/remote/drivers# rmmod morsecode 
+[  689.670767] <---- Morse code driver exit().
+root@beaglebone:/mnt/remote/drivers# lsmod
+Module                  Size  Used by
+snd_soc_davinci_mcasp    16463  0 
+snd_soc_edma            1482  1 snd_soc_davinci_mcasp
+snd_soc_omap            3314  1 snd_soc_davinci_mcasp
+snd_soc_core          158010  3 snd_soc_davinci_mcasp,snd_soc_edma,snd_soc_omap
+snd_pcm_dmaengine       5401  2 snd_soc_core,snd_soc_omap
+snd_pcm                80828  4 snd_soc_davinci_mcasp,snd_soc_core,snd_soc_omap,snd_pcm_dmaengine
+snd_timer              18513  1 snd_pcm
+snd                    58952  3 snd_soc_core,snd_timer,snd_pcm
+soundcore               7285  1 snd
+evdev                  10611  1 
+uio_pdrv_genirq         3629  0 
+uio                     9190  1 uio_pdrv_genirq
+8021q                  19014  0 
+garp                    6191  1 8021q
+mrp                     7495  1 8021q
+stp                     2309  1 garp
+llc                     5277  2 stp,garp
+usb_f_mass_storage     41446  2 
+usb_f_acm               7287  2 
+u_serial               10564  3 usb_f_acm
+usb_f_ecm               9848  2 
+usb_f_rndis            22675  2 
+u_ether                11397  2 usb_f_ecm,usb_f_rndis
+libcomposite           43441  16 usb_f_acm,usb_f_ecm,usb_f_rndis,usb_f_mass_storage
+spidev                  7608  0 
+tieqep                  9206  0 
+root@beaglebone:/mnt/remote/drivers# dmesg | tail -100
+[  545.091640] ----> Morse code driver init()
+[  689.670767] <---- Morse code driver exit().
+root@beaglebone:/mnt/remote/drivers# 
