@@ -7,5 +7,6 @@
 // Watchdog timer controls:
 void Watchdog_init(void);
 void Watchdog_hit(void);
+void Watchdog_disable(void);
 
 #endif /* WDTIMER_H_ */

@@ -11,9 +11,11 @@
  **                      WATCHDOG FUNCTIONS
  *******************************************************************************/
 #define WD_CLOCK          (32000L)
-#define WD_TIMEOUT_S      (30)
+#define WD_TIMEOUT_S      (5)
 #define WD_TIMEOUT_TICKS  (WD_TIMEOUT_S * WD_CLOCK)
 #define WD_RESET_VALUE    ((unsigned int)0xFFFFFFFF - WD_TIMEOUT_TICKS + 1)
+
+static _Bool isEnabled = true;
 
 void Watchdog_init()
 {
@@ -27,6 +29,8 @@ void Watchdog_init()
 
 void Watchdog_hit(void)
 {
+	if (!isEnabled) return;
+
 	static unsigned int triggerCounter = 0;
 
 	// Hit the WD, giving it a new trigger each time to keep it from
@@ -36,3 +40,7 @@ void Watchdog_hit(void)
 	WatchdogTimerTriggerSet(SOC_WDT_1_REGS, triggerCounter);
 }
 
+void Watchdog_disable(void)
+{
+	isEnabled = false;
+}
