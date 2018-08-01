@@ -2,6 +2,7 @@
 // On the serial port, fakes
 
 #include "consoleUtils.h"
+#include "hw_types.h"      // For HWREG(...) macro
 #include <stdint.h>
 
 // My hardware abstraction modules
@@ -32,11 +33,33 @@ static void doBackgroundSerialWork(void)
 /******************************************************************************
  **              RESET SOURCES
  ******************************************************************************/
-#define RESET_SOURCE_REG 0x44E00F00
+#define PRM_RSTST_BASE 	0x44E00F00
+#define PRM_RSTST 		PRM_RSTST_BASE + 0x8
 
+#define PRM_RSTST_GLOBAL_COLD_RST 		0
+#define PRM_RSTST_GLOBAL_WARM_SW_RST	1
+#define PRM_RSTST_WDT1_RST				4
+#define PRM_RSTST_EXTERNAL_WARM_RST 	5
+#define PRM_RSTST_ICEPICK_RST 			9
 
 static void PrintClearResetSource(void) {
-	HWREG()
+
+	int resetReg = HWREG(PRM_RSTST);
+
+	ConsoleUtilsPrintf("Reset sources: \n");
+	ConsoleUtilsPrintf("%d, %d, %d, %d, %d",
+		(resetReg & (1 << PRM_RSTST_GLOBAL_COLD_RST)) != 0,
+		(resetReg & (1 << PRM_RSTST_GLOBAL_WARM_SW_RST)) != 0,
+		(resetReg & (1 << PRM_RSTST_WDT1_RST)) != 0,
+		(resetReg & (1 << PRM_RSTST_EXTERNAL_WARM_RST)) != 0,
+		(resetReg & (1 << PRM_RSTST_ICEPICK_RST)) != 0);
+
+	HWREG(PRM_RSTST) |= (1 << PRM_RSTST_GLOBAL_COLD_RST)
+						| (1 << PRM_RSTST_GLOBAL_WARM_SW_RST)
+						| (1 << PRM_RSTST_WDT1_RST)
+						| (1 << PRM_RSTST_EXTERNAL_WARM_RST)
+						| (1 << PRM_RSTST_ICEPICK_RST);
+
 }
 
 /******************************************************************************
