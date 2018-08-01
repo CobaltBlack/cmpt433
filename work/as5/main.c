@@ -54,11 +54,11 @@ static void doBackgroundSerialWork(void)
 		}
 		// Bounce pattern
 		else if (s_rxByte == 'a') {
-
+			Led_setMode(LED_MODE_BOUNCING);
 		}
 		// Bar pattern
 		else if (s_rxByte == 'b') {
-
+			Led_setMode(LED_MODE_BAR);
 		}
 		// Stop hitting watchdog
 		else if (s_rxByte == 'x') {

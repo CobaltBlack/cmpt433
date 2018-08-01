@@ -27,6 +27,8 @@ static uint32_t s_elapsedCounter = 0;	// Used to count elapsed time between LED 
 static uint32_t s_speed = 5;	// 0-9 speed settings
 static uint32_t s_speedFactor = 2;	// Number of timer ISR notifies needed before updating LEDs
 
+static uint32_t s_current_n = 0;	// Used to track state of LED
+static _Bool s_is_n_increasing = true;	// Used to track state of LED
 
 /*****************************************************************************
  **                INTERNAL MACRO DEFINITIONS
@@ -46,6 +48,74 @@ static uint32_t s_speedFactor = 2;	// Number of timer ISR notifies needed before
 /*****************************************************************************
  **                LED CONTROL FUNCTIONS
  *****************************************************************************/
+static void cycleN(void)
+{
+	switch (s_current_n) {
+	case 0:
+		s_current_n = 1;
+		s_is_n_increasing = true;
+		break;
+	case 1:
+		s_current_n = s_is_n_increasing ? 2 : 0;
+		break;
+	case 2:
+		s_current_n = s_is_n_increasing ? 3 : 1;
+		break;
+	case 3:
+		s_current_n = 2;
+		s_is_n_increasing = false;
+		break;
+	default:
+		// For whatever reason if N is not within expected range...
+		s_current_n = 0;
+	}
+}
+
+static void driveLedsBouncingMode(void)
+{
+	// Clear all the LEDs:
+	HWREG(LED_GPIO_BASE + GPIO_CLEARDATAOUT) = LED_MASK;
+	uint32_t ledsToTurnOn = 0;
+
+	switch(s_current_n) {
+	case 0:
+		ledsToTurnOn |= (1 << LED0_PIN);
+		break;
+	case 1:
+		ledsToTurnOn |= (1 << LED1_PIN);
+		break;
+	case 2:
+		ledsToTurnOn |= (1 << LED2_PIN);
+		break;
+	case 3:
+		ledsToTurnOn |= (1 << LED3_PIN);
+		break;
+	}
+
+	HWREG(LED_GPIO_BASE + GPIO_SETDATAOUT) = ledsToTurnOn;
+}
+
+static void driveLedsBarMode(void)
+{
+	// Clear all the LEDs:
+	HWREG(LED_GPIO_BASE + GPIO_CLEARDATAOUT) = LED_MASK;
+	uint32_t ledsToTurnOn = 0;
+
+	switch(s_current_n) {
+	case 0:
+		ledsToTurnOn |= (1 << LED0_PIN);
+	case 1:
+		ledsToTurnOn |= (1 << LED1_PIN);
+	case 2:
+		ledsToTurnOn |= (1 << LED2_PIN);
+	case 3:
+		ledsToTurnOn |= (1 << LED3_PIN);
+		break;
+	}
+
+	HWREG(LED_GPIO_BASE + GPIO_SETDATAOUT) = ledsToTurnOn;
+}
+
 
 
 
@@ -102,11 +172,13 @@ void Led_doBackgroundWork(void)
 
 		// TODO:
 		if (s_mode == LED_MODE_BOUNCING) {
-
+			driveLedsBouncingMode();
 		}
 		else if (s_mode == LED_MODE_BAR) {
-
+			driveLedsBarMode();
 		}
+
+		cycleN();
 	}
 }
 

@@ -20,4 +20,6 @@ void Led_doBackgroundWork(void);
 uint32_t Led_getSpeed(void);
 void Led_setSpeed(char newSpeed);
 
+void Led_setMode(enum Led_Mode newMode);
+
 #endif /* LED_H_ */
