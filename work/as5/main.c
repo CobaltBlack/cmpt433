@@ -102,13 +102,25 @@ static void printClearResetSource(void)
 {
 	uint32_t resetReg = HWREG(PRM_RSTST);
 
-	ConsoleUtilsPrintf("Reset sources: \n");
-	ConsoleUtilsPrintf("%d, %d, %d, %d, %d",
-		(resetReg & (1 << PRM_RSTST_GLOBAL_COLD_RST)) != 0,
-		(resetReg & (1 << PRM_RSTST_GLOBAL_WARM_SW_RST)) != 0,
-		(resetReg & (1 << PRM_RSTST_WDT1_RST)) != 0,
-		(resetReg & (1 << PRM_RSTST_EXTERNAL_WARM_RST)) != 0,
-		(resetReg & (1 << PRM_RSTST_ICEPICK_RST)) != 0);
+	if ((resetReg & (1 << PRM_RSTST_GLOBAL_COLD_RST)) != 0) {
+		ConsoleUtilsPrintf("Reset source (0x0) = Cold reset (Unplugged power)\n");
+	}
+
+	if ((resetReg & (1 << PRM_RSTST_GLOBAL_WARM_SW_RST)) != 0) {
+		ConsoleUtilsPrintf("Reset source (0x1) = Warm software reset\n");
+	}
+
+	if ((resetReg & (1 << PRM_RSTST_WDT1_RST)) != 0) {
+		ConsoleUtilsPrintf("Reset source (0x4) = Watchdog reset\n");
+	}
+
+	if ((resetReg & (1 << PRM_RSTST_EXTERNAL_WARM_RST)) != 0) {
+		ConsoleUtilsPrintf("Reset source (0x5) = External warm reset (Reset button)\n");
+	}
+
+	if ((resetReg & (1 << PRM_RSTST_ICEPICK_RST)) != 0) {
+		ConsoleUtilsPrintf("Reset source (0x9) = Icepick\n");
+	}
 
 	HWREG(PRM_RSTST) |= (1 << PRM_RSTST_GLOBAL_COLD_RST)
 						| (1 << PRM_RSTST_GLOBAL_WARM_SW_RST)

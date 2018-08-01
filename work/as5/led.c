@@ -44,6 +44,12 @@ static uint32_t s_speedFactor = 2;	// Number of timer ISR notifies needed before
 
 
 /*****************************************************************************
+ **                LED CONTROL FUNCTIONS
+ *****************************************************************************/
+
+
+
+/*****************************************************************************
  **                PUBLIC FUNCTIONS
  *****************************************************************************/
 void Led_init(void)
@@ -121,6 +127,22 @@ void Led_setSpeed(char newSpeed)
 
 	uint32_t newSpeedInt = newSpeed - MIN_SPEED;	// Convert ASCII to int
 
+	ConsoleUtilsPrintf("\nSetting LED speed to %d\n", newSpeedInt);
+
 	s_speed = newSpeedInt;
 	s_speedFactor = (1 << (SPEED_FACTOR_EXPONENT - newSpeedInt));	// equivalent to 2 ^ (9 - newSpeed)
+}
+
+void Led_setMode(enum Led_Mode newMode)
+{
+	s_mode = newMode;
+	if (newMode == LED_MODE_BOUNCING) {
+		ConsoleUtilsPrintf("\nChanging to bounce mode.\n");
+	}
+	else if (newMode == LED_MODE_BAR) {
+		ConsoleUtilsPrintf("\nChanging to bar mode.\n");
+	}
+	else {
+		ConsoleUtilsPrintf("\nChanging to unknown mode.\n");
+	}
 }
