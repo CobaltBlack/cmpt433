@@ -11,7 +11,7 @@
 /******************************************************************************
  **                     TIMER TICK FUNCTIONS
  *******************************************************************************/
-#define TIMER_INITIAL_COUNT             (0xFFE00000)  // Some time that looks good.
+#define TIMER_INITIAL_COUNT             (0xFFFC2F70)  // 10 ms at 25 MHz
 #define TIMER_RLD_COUNT                 TIMER_INITIAL_COUNT
 
 static void DMTimerAintcConfigure(void);
