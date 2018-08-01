@@ -1,5 +1,4 @@
-// Fake Typing bare metal sample application
-// On the serial port, fakes
+// Lightbouncer BareMetal program
 
 #include "consoleUtils.h"
 #include "hw_types.h"      // For HWREG(...) macro
@@ -12,68 +11,7 @@
 #include "wdtimer.h"
 
 // My application's modules
-#include "fakeTyper.h"
-
-
-
-
-/******************************************************************************
- **              COMMANDS
- ******************************************************************************/
-
-void printHelpMessage(void)
-{
-	ConsoleUtilsPrintf("\nAccepted serial commands:\n");
-	ConsoleUtilsPrintf( "?   : Display this help message.\n"
-						"0-9 : Set speed 0 (slow) to 9 (fast).\n"
-						"a   : Select pattern A (bounce).\n"
-						"b   : Select pattern B (bar).\n"
-						"x   : Stop hitting the watchdog.\n");
-}
-
-/******************************************************************************
- **              SERIAL PORT HANDLING
- ******************************************************************************/
-static volatile uint8_t s_rxByte = 0;
-static void serialRxIsrCallback(uint8_t rxByte)
-{
-	s_rxByte = rxByte;
-}
-
-static void doBackgroundSerialWork(void)
-{
-	// TODO?
-	if (s_rxByte != 0) {
-		// Help
-		if (s_rxByte == '?') {
-			printHelpMessage();
-		}
-		// Speed
-		else if ('0' <= s_rxByte && s_rxByte <= '9') {
-			Led_setSpeed(s_rxByte);
-		}
-		// Bounce pattern
-		else if (s_rxByte == 'a') {
-			Led_setMode(LED_MODE_BOUNCING);
-		}
-		// Bar pattern
-		else if (s_rxByte == 'b') {
-			Led_setMode(LED_MODE_BAR);
-		}
-		// Stop hitting watchdog
-		else if (s_rxByte == 'x') {
-			Watchdog_disable();
-		}
-		else {
-			ConsoleUtilsPrintf("\nUnrecognized command!\n");
-			printHelpMessage();
-		}
-
-		s_rxByte = 0;
-	}
-}
-
-
+#include "command.h"
 
 
 /******************************************************************************
@@ -136,32 +74,28 @@ static void printClearResetSource(void)
 int main(void)
 {
 	// Initialization
-	Serial_init(serialRxIsrCallback);
+	Serial_init();
 	Timer_init();
 	Watchdog_init();
-	FakeTyper_init();
 
 	// Setup callbacks from hardware abstraction modules to application:
-	Serial_setRxIsrCallback(serialRxIsrCallback);
+	Serial_setRxIsrCallback(Command_serialRxIsrCallback);
 	Timer_setTimerIsrCallback(notifyTimerIsr);
 
 	// Display startup messages to console:
-	ConsoleUtilsPrintf("\nWelcome! This BareMetal program is brought to you by:\n");
+	ConsoleUtilsPrintf("\nWelcome to LightBouncer! This BareMetal program is brought to you by:\n");
 	ConsoleUtilsPrintf("Feng Liu - 301218282 - liufengl@sfu.ca\n");
-	ConsoleUtilsPrintf("Created for: CMPT 433 Assignment 5\n");
+	ConsoleUtilsPrintf("Created for: CMPT 433 Assignment 5\n\n");
 
 	printClearResetSource();
 
-	printHelpMessage();
+	Command_printHelpMessage();
 
 	// Main loop:
 	while(1) {
 		// Handle background processing
-		doBackgroundSerialWork();
+		Command_doBackgroundSerialWork();
 		Led_doBackgroundWork();
-
-
-		FakeTyper_doBackgroundWork();
 
 		// Timer ISR signals intermittent background activity.
 		if(Timer_isIsrFlagSet()) {
