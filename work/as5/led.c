@@ -218,3 +218,15 @@ void Led_setMode(enum Led_Mode newMode)
 		ConsoleUtilsPrintf("\nChanging to unknown mode.\n");
 	}
 }
+
+void Led_toggleMode(void)
+{
+	if (s_mode == LED_MODE_BOUNCING) {
+		s_mode = LED_MODE_BAR;
+		ConsoleUtilsPrintf("\nChanging to bounce mode.\n");
+	}
+	else if (s_mode == LED_MODE_BAR) {
+		s_mode = LED_MODE_BOUNCING;
+		ConsoleUtilsPrintf("\nChanging to bar mode.\n");
+	}
+}

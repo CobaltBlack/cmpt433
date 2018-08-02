@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 // My hardware abstraction modules
+#include "joystick.h"
 #include "led.h"
 #include "serial.h"
 #include "timer.h"
@@ -22,6 +23,7 @@
 static void notifyTimerIsr()
 {
 	Led_notifyTimerIsr();
+	Joystick_notifyTimerIsr();
 }
 
 /******************************************************************************
@@ -74,6 +76,7 @@ static void printClearResetSource(void)
 int main(void)
 {
 	// Initialization
+	Joystick_init();
 	Serial_init();
 	Timer_init();
 	Watchdog_init();
@@ -96,6 +99,7 @@ int main(void)
 		// Handle background processing
 		Command_doBackgroundSerialWork();
 		Led_doBackgroundWork();
+		Joystick_doBackgroundWork();
 
 		// Timer ISR signals intermittent background activity.
 		if(Timer_isIsrFlagSet()) {

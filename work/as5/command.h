@@ -3,6 +3,8 @@
  *
  *  Created on: Aug 1, 2018
  *      Author: eric
+ *
+ *      Handles serial input
  */
 
 #ifndef COMMAND_H_

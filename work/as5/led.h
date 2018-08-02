@@ -3,6 +3,8 @@
  *
  *  Created on: Aug 1, 2018
  *      Author: eric
+ *
+ *      Initializes and controls BBG LEDs
  */
 
 #ifndef LED_H_
@@ -21,5 +23,6 @@ uint32_t Led_getSpeed(void);
 void Led_setSpeed(char newSpeed);
 
 void Led_setMode(enum Led_Mode newMode);
+void Led_toggleMode(void);
 
 #endif /* LED_H_ */
